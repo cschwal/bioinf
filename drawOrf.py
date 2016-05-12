@@ -12,8 +12,8 @@ group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-i', help='Input nucleotide record')
 group.add_argument('-f', help='Input GenBank-format file')
 parser.add_argument('-e', help='Email address (required for Entrez)', required=True)
-parser.add_argument('--start', help='Start coordinate', default=0)
-parser.add_argument('--end', help='End coordinate')
+parser.add_argument('--start', help='Start coordinate', type=int)
+parser.add_argument('--end', help='End coordinate', type=int)
 parser.add_argument('-o', help='Output filename base (no extension!)', required=True)
 parser.add_argument('--pdf', help='Make PDF', action='store_true')
 parser.add_argument('--png', help='Make PNG', action='store_true')
@@ -53,9 +53,13 @@ if args.end:
 	endDiag = args.end
 else:
 	endDiag = len(record)
+if args.start:
+	startDiag = args.start
+else:
+	startDiag = 0
 
 # generate diagram format	
-gd_diagram.draw(format=args.shape, pagesize=(args.height*cm,args.width*cm), fragments=1, start=args.start, end=endDiag)
+gd_diagram.draw(format=args.shape, pagesize=(args.height*cm,args.width*cm), fragments=1, start=startDiag, end=endDiag)
 
 # save files -- defaults to a PDF output if no formats are specified, but otherwise only gives the ones desired
 if args.pdf:

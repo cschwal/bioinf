@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 '''
-phmmerall.py
+phmmerallf.py
   takes an input FASTA file and performs phmmer exhaustively
   then compares all sequences to an input pHMM database
   and then optionally gives a sequence-similarity network (SSN)
@@ -16,7 +16,7 @@ from Bio import Entrez, Seq, SeqIO	# BioPython
 
 # input options
 parser = argparse.ArgumentParser(description='phmmerall -- Generates all v all phmmer for sequence similarity network generation')
-parser.add_argument('-i', help='Input protein GI-containing CSV', required=True)                        # input filename -- either GI list or CSV containing GI list
+parser.add_argument('-i', help='Input protein FASTA file', required=True)                        # input filename -- FASTA file
 parser.add_argument('-e', help='Email address', required=True)                                          # email address is required for Entrez identification
 parser.add_argument('-o', help='Output file base (no suffix)', default='phmmerall_out') 
 parser.add_argument('--verbose', help='Give verbose output (for debugging)', action='store_true', default=False) 
@@ -88,8 +88,8 @@ def rodeo_csv_to_list(filename, column, verbose, comma_delimited):
     return final_list
 
 def phmmerall(input_filename, output_filename):
-  os.system("phmmer -o tmp.tmp --tblout %s --noali %s %s %s" % (output_filename, eval_threshold, input_filename, input_filename))
-  os.system("rm tmp.tmp")
+  os.system("phmmer -o tmp2.tmp --tblout %s --noali %s %s %s" % (output_filename, eval_threshold, input_filename, input_filename))
+  os.system("rm tmp2.tmp")
   return
 
 def parse_phmmer(phmmer_filename, verbose):
@@ -150,8 +150,8 @@ def gi_list_fetch_to_fasta(list_of_gis, fasta_filename):
     f.write(data)
 
 def hmmscanall(input_filename, hmm_database, output_filename):
-  os.system("hmmscan -o tmp.tmp --tblout %s --noali %s %s" % (output_filename, hmm_database, input_filename))
-  os.system("rm tmp.tmp")
+  os.system("hmmscan -o tmp3.tmp --tblout %s --noali %s %s" % (output_filename, hmm_database, input_filename))
+  os.system("rm tmp3.tmp")
   return
 
 def parse_hmmscan(hmmscan_filename, verbose):
@@ -203,9 +203,13 @@ def parse_fasta_to_identifier_list(fasta_filename):
   with f:
     reader = f.readlines()
     for row in reader:
-      values = re.match(r'>(.+?)\s(.+?)\n',row)
-      if values:
-        result_list.append((values.group(1), values.group(2)))
+      if re.match(r'>',row):
+        values = re.match(r'>(.+?)\s(.+?)\n',row)
+        if values:
+          result_list.append((values.group(1), values.group(2)))
+        else:
+          values = re.match(r'>(.+?)\n',row)
+          result_list.append((values.group(1), values.group(1)))
   f.close()
   return result_list
    
@@ -300,7 +304,7 @@ def output_to_xgmml(node_list, edge_list, hmm_list, xgmml_file):
   
 
 def main():
-  # convert CSV to GI list
+  '''# convert CSV to GI list
   if v: print ' ... Converting CSV to GI list',
   gi_list = rodeo_csv_to_list(arch_file,args.c,v,False)
   if v: print ' - DONE!'
@@ -309,10 +313,12 @@ def main():
   if v: print ' ... Fetching proteins via Entrez & saving as FASTA',
   gi_list_fetch_to_fasta(gi_list, fasta_file)
   if v: print ' - DONE!'
+  '''
   
+  fasta_file = args.i
   # perform all-vs-all phmmer and save unique results to a CSV file
   if v: print ' ... Performing all-vs-all pHMMER ...',
-  phmmerall(fasta_file, hmmer_file)
+  '''phmmerall(fasta_file, hmmer_file)'''
   if v: print 'and saving results to CSV',
   phmmer_results = parse_phmmer(hmmer_file, v)
   phmmer_tuples_to_csv(phmmer_results, phmmer_csv_file)
@@ -320,7 +326,7 @@ def main():
   
   # perform hmmscan against pHMM database for all FASTAs and save results to a CSV file
   if v: print ' ... Performing search against pHMM database: %s ...' % hmm_db,
-  hmmscanall(fasta_file, hmm_db, hmmscan_file)
+  '''hmmscanall(fasta_file, hmm_db, hmmscan_file)'''
   hmmscan_results = parse_hmmscan(hmmscan_file, v)
   if v: print 'and saving results to CSV',
   hmmscan_tuples_to_csv(hmmscan_results, hmmscan_csv_file)
